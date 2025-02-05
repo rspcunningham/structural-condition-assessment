@@ -81,6 +81,14 @@ export default function Home() {
     console.log('Exporting PDF...');
   };
 
+  const handleNewAnalysis = () => {
+    setIsAnalyzing(false);
+    setIsShowingReport(false);
+    setAnalysisResults([]);
+    setSelectedFiles([]);
+    setSelectedImageIndex(0);
+  };
+
   if (isShowingReport) {
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
@@ -94,16 +102,16 @@ export default function Home() {
               Back to Analysis
             </button>
             <button
-              onClick={handleExportPDF}
+              onClick={handleNewAnalysis}
               className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
             >
-              Export PDF
+              New Analysis
             </button>
           </div>
         </div>
 
         <div className="overflow-y-auto">
-          <div ref={reportRef} className="max-w-4xl mx-auto space-y-8 pb-8">
+          <div className="max-w-4xl mx-auto space-y-8 pb-8">
             {/* Report Header */}
             <div className="flex justify-between items-start border-b border-black/[.08] dark:border-white/[.145] pb-6">
               <div>
