@@ -3,11 +3,19 @@
 import { useState, ChangeEvent, DragEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Add new type definition for the analysis result
+type AnalysisResult = {
+  component_type: string;
+  condition_grade: number;
+  condition_description: string;
+  maintenance_recommendations: string;
+};
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<string[]>([]);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const router = useRouter();
 
@@ -40,11 +48,16 @@ export default function Home() {
     if (selectedFiles.length === 0) return;
     
     setIsAnalyzing(true);
-    // TODO: Implement actual analysis logic here
-    // For demo, we'll just set some sample results after a delay
-    setTimeout(() => {
-      setAnalysisResults(selectedFiles.map(file => `Sample analysis result for ${file.name}`));
-    }, 1500);
+    
+    try {
+      const results = await Promise.all(
+        selectedFiles.map(file => analyseImage(file))
+      );
+      setAnalysisResults(results);
+    } catch (error) {
+      console.error('Error analyzing images:', error);
+      // You might want to add error handling UI here
+    }
   };
 
   const handleGenerateReport = async (): Promise<void> => {
@@ -97,7 +110,14 @@ export default function Home() {
                 {selectedFiles[selectedImageIndex].name}
               </h2>
               <div className="bg-black/[.03] dark:bg-white/[.03] p-4 rounded-lg flex-1">
-                <p className="text-sm">{analysisResults[selectedImageIndex]}</p>
+                {analysisResults[selectedImageIndex] && (
+                  <div className="space-y-4 text-sm">
+                    <p><strong>Component Type:</strong> {analysisResults[selectedImageIndex].component_type}</p>
+                    <p><strong>Condition Grade:</strong> {analysisResults[selectedImageIndex].condition_grade}/5</p>
+                    <p><strong>Condition:</strong> {analysisResults[selectedImageIndex].condition_description}</p>
+                    <p><strong>Recommendations:</strong> {analysisResults[selectedImageIndex].maintenance_recommendations}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
