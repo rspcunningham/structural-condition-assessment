@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ChangeEvent, DragEvent } from 'react';
+import { useState, ChangeEvent, DragEvent, RefObject, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface AnalysisResult {
@@ -18,6 +18,7 @@ export default function Home() {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const router = useRouter();
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -101,59 +102,71 @@ export default function Home() {
         </div>
 
         <div className="overflow-y-auto">
-          <div className="max-w-4xl mx-auto space-y-8 pb-8">
+          <div ref={reportRef} className="max-w-4xl mx-auto space-y-8 pb-8">
             {/* Report Header */}
-            <div className="border-b border-black/[.08] dark:border-white/[.145] pb-6">
-              <p className="text-sm text-gray-500">Report Generated: {new Date().toLocaleDateString()}</p>
-              <p className="text-sm text-gray-500">Total Components Analyzed: {analysisResults.length}</p>
+            <div className="flex justify-between items-start border-b border-black/[.08] dark:border-white/[.145] pb-6">
+              <div>
+                <h1 className="text-2xl font-bold mb-4">Structural Analysis Report</h1>
+                <p className="text-sm text-gray-500">Report Generated: {new Date().toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500">Total Components Analyzed: {analysisResults.length}</p>
+              </div>
+              {/* Logo */}
+              <div className="w-20 h-20">
+                <img 
+                  src="/logo.svg" 
+                  alt="Company Logo" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
             </div>
 
-            {/* Report Content */}
+            {/* Introduction Section */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-medium">Introduction</h2>
+              <div className="prose prose-sm dark:prose-invert">
+                <p>
+                  This structural integrity analysis report provides a comprehensive assessment 
+                  of various building components and infrastructure elements. The analysis was 
+                  conducted using advanced visual inspection techniques and automated assessment 
+                  tools to identify potential issues and maintenance requirements.
+                </p>
+                <p>
+                  Each component has been thoroughly examined for signs of wear, damage, or 
+                  deterioration. The report includes detailed observations and specific 
+                  maintenance recommendations for each analyzed component.
+                </p>
+              </div>
+            </div>
+
+            {/* Components Analysis Section */}
             <div className="space-y-12">
+              <h2 className="text-xl font-medium">Component Analysis</h2>
               {analysisResults.map((result, index) => (
-                <div key={index} className="space-y-6">
-                  <div className="flex gap-6">
-                    <div className="w-1/2">
+                <div key={index} className="space-y-8">
+                  <h3 className="text-lg font-medium capitalize">
+                    {result.component_type}
+                  </h3>
+
+                  {/* Centered image and caption */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-1/2 aspect-square">
                       <img
                         src={URL.createObjectURL(selectedFiles[index])}
                         alt={selectedFiles[index].name}
-                        className="w-full aspect-square object-cover rounded-lg"
+                        className="w-full h-full object-cover rounded-lg"
                       />
-                      <p className="text-sm text-gray-500 mt-2">{selectedFiles[index].name}</p>
                     </div>
-                    <div className="w-1/2 space-y-4">
-                      <div>
-                        <h3 className="text-lg font-medium">Component Details</h3>
-                        <p className="text-sm capitalize">{result.component_type}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Condition Grade</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                            ${result.condition_grade <= 2 ? 'bg-green-500' :
-                              result.condition_grade === 3 ? 'bg-yellow-500' :
-                              'bg-red-500'}`}>
-                            {result.condition_grade}
-                          </span>
-                          <span className="text-sm">
-                            {result.condition_grade <= 2 ? 'Good' :
-                              result.condition_grade === 3 ? 'Fair' :
-                              'Poor'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-500 mt-2">{selectedFiles[index].name}</p>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Condition Assessment</h3>
+                      <h4 className="text-sm font-medium text-gray-500">Condition Assessment</h4>
                       <p className="text-sm mt-1">{result.condition_description}</p>
                     </div>
                     
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Recommended Actions</h3>
+                      <h4 className="text-sm font-medium text-gray-500">Recommended Actions</h4>
                       <p className="text-sm mt-1">{result.maintenance_recommendations}</p>
                     </div>
                   </div>
@@ -170,8 +183,9 @@ export default function Home() {
               <h2 className="text-lg font-medium mb-4">Summary</h2>
               <p className="text-sm">
                 This report details the structural analysis of {analysisResults.length} components. 
-                The average condition grade is {(analysisResults.reduce((acc, curr) => acc + curr.condition_grade, 0) / analysisResults.length).toFixed(1)}.
-                Immediate attention is recommended for components with a condition grade of 4 or higher.
+                Maintenance recommendations have been provided based on the condition assessment 
+                of each component. Regular monitoring and implementation of the recommended 
+                actions will help maintain the structural integrity and longevity of the analyzed components.
               </p>
             </div>
           </div>
