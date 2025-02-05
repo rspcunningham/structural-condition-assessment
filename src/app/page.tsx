@@ -14,6 +14,7 @@ export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isShowingReport, setIsShowingReport] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const router = useRouter();
@@ -69,10 +70,115 @@ export default function Home() {
     setAnalysisResults(results);
   };
 
-  const handleGenerateReport = async (): Promise<void> => {
-    // TODO: Implement report generation logic
-    console.log('Generating report for results:', analysisResults);
+  const handleGenerateReport = () => {
+    setIsShowingReport(true);
   };
+
+  const handleExportPDF = () => {
+    // TODO: Implement PDF export
+    console.log('Exporting PDF...');
+  };
+
+  if (isShowingReport) {
+    return (
+      <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Structural Analysis Report</h1>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setIsShowingReport(false)}
+              className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25]"
+            >
+              Back to Analysis
+            </button>
+            <button
+              onClick={handleExportPDF}
+              className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            >
+              Export PDF
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto">
+          <div className="max-w-4xl mx-auto space-y-8 pb-8">
+            {/* Report Header */}
+            <div className="border-b border-black/[.08] dark:border-white/[.145] pb-6">
+              <p className="text-sm text-gray-500">Report Generated: {new Date().toLocaleDateString()}</p>
+              <p className="text-sm text-gray-500">Total Components Analyzed: {analysisResults.length}</p>
+            </div>
+
+            {/* Report Content */}
+            <div className="space-y-12">
+              {analysisResults.map((result, index) => (
+                <div key={index} className="space-y-6">
+                  <div className="flex gap-6">
+                    <div className="w-1/2">
+                      <img
+                        src={URL.createObjectURL(selectedFiles[index])}
+                        alt={selectedFiles[index].name}
+                        className="w-full aspect-square object-cover rounded-lg"
+                      />
+                      <p className="text-sm text-gray-500 mt-2">{selectedFiles[index].name}</p>
+                    </div>
+                    <div className="w-1/2 space-y-4">
+                      <div>
+                        <h3 className="text-lg font-medium">Component Details</h3>
+                        <p className="text-sm capitalize">{result.component_type}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Condition Grade</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-white
+                            ${result.condition_grade <= 2 ? 'bg-green-500' :
+                              result.condition_grade === 3 ? 'bg-yellow-500' :
+                              'bg-red-500'}`}>
+                            {result.condition_grade}
+                          </span>
+                          <span className="text-sm">
+                            {result.condition_grade <= 2 ? 'Good' :
+                              result.condition_grade === 3 ? 'Fair' :
+                              'Poor'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Condition Assessment</h3>
+                      <p className="text-sm mt-1">{result.condition_description}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Recommended Actions</h3>
+                      <p className="text-sm mt-1">{result.maintenance_recommendations}</p>
+                    </div>
+                  </div>
+
+                  {index < analysisResults.length - 1 && (
+                    <div className="border-b border-black/[.08] dark:border-white/[.145]" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Report Summary */}
+            <div className="border-t border-black/[.08] dark:border-white/[.145] pt-6">
+              <h2 className="text-lg font-medium mb-4">Summary</h2>
+              <p className="text-sm">
+                This report details the structural analysis of {analysisResults.length} components. 
+                The average condition grade is {(analysisResults.reduce((acc, curr) => acc + curr.condition_grade, 0) / analysisResults.length).toFixed(1)}.
+                Immediate attention is recommended for components with a condition grade of 4 or higher.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isAnalyzing && analysisResults.length > 0) {
     return (
