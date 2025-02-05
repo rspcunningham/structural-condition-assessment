@@ -13,8 +13,8 @@ export async function POST(request: Request) {
             : `data:image/jpeg;base64,${image}`;
             
         const response = await openai.beta.chat.completions.parse({
-            //model: "gpt-4o",
-            model: "o1",
+            model: "gpt-4o",
+            //model: "o1",
             messages: [
                 {
                 "role": "developer",
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
                 }
                 }
             },
-            reasoning_effort: "medium"
+            //reasoning_effort: "medium"
             }
         );
 
