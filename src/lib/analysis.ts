@@ -1,4 +1,3 @@
-import { assessComponent } from "@/lib/llm";
 
 export type AnalysisResult = {
   component_type: string;
@@ -8,6 +7,17 @@ export type AnalysisResult = {
 };
 
 export const analyseImage = async (image: string): Promise<AnalysisResult> => {
-    const result = await assessComponent(image);
-    return result;
+    const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image })
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to analyze image');
+    }
+
+    return response.json();
 };
