@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ChangeEvent, DragEvent, useRef } from 'react';
+import { useState, ChangeEvent, DragEvent } from 'react';
 import { analyseImage, AnalysisResult } from '@/lib/analysis';
 
 
@@ -11,7 +11,6 @@ export default function Home() {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [isShowingReport, setIsShowingReport] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const reportRef = useRef<HTMLDivElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -74,11 +73,6 @@ export default function Home() {
 
   const handleGenerateReport = () => {
     setIsShowingReport(true);
-  };
-
-  const handleExportPDF = () => {
-    // TODO: Implement PDF export
-    console.log('Exporting PDF...');
   };
 
   const handleNewAnalysis = () => {
