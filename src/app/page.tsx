@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, ChangeEvent, DragEvent, RefObject, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, ChangeEvent, DragEvent, useRef } from 'react';
 import { analyseImage, AnalysisResult } from '@/lib/analysis';
 
 
@@ -12,7 +11,6 @@ export default function Home() {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [isShowingReport, setIsShowingReport] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const router = useRouter();
   const reportRef = useRef<HTMLDivElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
