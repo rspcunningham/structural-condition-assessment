@@ -183,7 +183,18 @@ export default function Home() {
     );
   }
 
-  if (isAnalyzing && analysisResults.length > 0) {
+  if (isAnalyzing) {
+    if (analysisResults.length === 0) {
+      return (
+        <div className="grid place-items-center h-screen font-[family-name:var(--font-geist-sans)]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-black/[.08] border-t-foreground rounded-full animate-spin" />
+            <p className="text-sm text-gray-500">Analyzing your images...</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
         <h1 className="text-2xl font-bold text-center mb-6">Analysis Results</h1>
