@@ -3,11 +3,18 @@
 import { useState, ChangeEvent, DragEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface AnalysisResult {
+  component_type: string;
+  condition_grade: number;
+  condition_description: string;
+  maintenance_recommendations: string;
+}
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<string[]>([]);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const router = useRouter();
 
@@ -36,15 +43,30 @@ export default function Home() {
     }
   };
 
+  // Analysis function
+  const analyzeImage = async (file: File): Promise<AnalysisResult> => {
+    // TODO: Replace with actual API call to your analysis service
+    // This is just a mock response for demonstration
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          component_type: "well pressure tank",
+          condition_grade: 3,
+          condition_description: "The tank exhibits moderate wear with visible scuff marks and signs of rust near fittings. There is no apparent severe damage or active leaking, but the exterior surface and connections indicate aging components.",
+          maintenance_recommendations: "Inspect all fittings for hidden corrosion or leakage, clean and treat rusted areas, and verify proper pressure settings. Schedule a more thorough inspection and pressure test to ensure continued safe operation."
+        });
+      }, 1500);
+    });
+  };
+
   const handleUpload = async (): Promise<void> => {
     if (selectedFiles.length === 0) return;
     
     setIsAnalyzing(true);
-    // TODO: Implement actual analysis logic here
-    // For demo, we'll just set some sample results after a delay
-    setTimeout(() => {
-      setAnalysisResults(selectedFiles.map(file => `Sample analysis result for ${file.name}`));
-    }, 1500);
+    const results = await Promise.all(
+      selectedFiles.map(file => analyzeImage(file))
+    );
+    setAnalysisResults(results);
   };
 
   const handleGenerateReport = async (): Promise<void> => {
@@ -92,12 +114,42 @@ export default function Home() {
             </div>
 
             {/* Analysis details */}
-            <div className="w-80 flex-none flex flex-col">
+            <div className="w-96 flex-none flex flex-col overflow-y-auto">
               <h2 className="text-lg font-medium truncate mb-4">
                 {selectedFiles[selectedImageIndex].name}
               </h2>
-              <div className="bg-black/[.03] dark:bg-white/[.03] p-4 rounded-lg flex-1">
-                <p className="text-sm">{analysisResults[selectedImageIndex]}</p>
+              <div className="bg-black/[.03] dark:bg-white/[.03] p-6 rounded-lg flex-1 space-y-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Component Type</h3>
+                  <p className="text-base capitalize">{analysisResults[selectedImageIndex].component_type}</p>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Condition Grade</h3>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-white
+                      ${analysisResults[selectedImageIndex].condition_grade <= 2 ? 'bg-green-500' :
+                        analysisResults[selectedImageIndex].condition_grade === 3 ? 'bg-yellow-500' :
+                        'bg-red-500'}`}>
+                      {analysisResults[selectedImageIndex].condition_grade}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {analysisResults[selectedImageIndex].condition_grade <= 2 ? 'Good' :
+                        analysisResults[selectedImageIndex].condition_grade === 3 ? 'Fair' :
+                        'Poor'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Condition Description</h3>
+                  <p className="text-sm">{analysisResults[selectedImageIndex].condition_description}</p>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Maintenance Recommendations</h3>
+                  <p className="text-sm">{analysisResults[selectedImageIndex].maintenance_recommendations}</p>
+                </div>
               </div>
             </div>
           </div>
