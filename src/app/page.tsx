@@ -609,6 +609,8 @@ export default function Home() {
                       originalFile: file,
                       description: ''
                     }))]);
+                    // Set current image index to the first new image
+                    setCurrentImageIndex(selectedFiles.length);
                   }
                 }}
                 className="hidden"
