@@ -9,6 +9,12 @@ interface Annotation {
   width: number;
 }
 
+interface ImageData {
+  file: File;
+  originalFile: File;
+  description: string;
+}
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -57,7 +63,8 @@ export default function Home() {
   const handleUpload = (files: File[]) => {
     setSelectedFiles(files);
     setImageData(files.map(file => ({
-      file,
+      file: file,
+      originalFile: file,
       description: ''
     })));
     setCurrentImageIndex(0);
@@ -130,12 +137,12 @@ export default function Home() {
         type: 'image/png'
       });
 
-      // Update the imageData with the annotated version
+      // Update the imageData with the annotated version but keep the original
       setImageData(prev => {
         const newData = [...prev];
         newData[currentImageIndex] = {
           ...newData[currentImageIndex],
-          file: annotatedFile // Replace the file with the annotated version
+          file: annotatedFile // Only update the annotated version
         };
         return newData;
       });
@@ -271,7 +278,8 @@ export default function Home() {
   if (isShowingReport) {
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
-        <div className="flex justify-between items-center mb-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-12">
           <h1 className="text-2xl font-bold">Structural Analysis Report</h1>
           <div className="flex gap-4">
             <button
@@ -294,10 +302,18 @@ export default function Home() {
             {/* Report Header */}
             <div className="flex justify-between items-start border-b border-black/[.08] dark:border-white/[.145] pb-6">
               <div>
-                <h1 className="text-2xl font-bold mb-4">Structural Analysis Report</h1>
-                <p className="text-sm text-gray-500">Report Generated: {new Date().toLocaleDateString()}</p>
-                <p className="text-sm text-gray-500">Site Address: {siteAddress}</p>
-                <p className="text-sm text-gray-500">Total Components Analyzed: {analysisResults.length}</p>
+                <h1 className="text-2xl font-bold mb-4 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Structural Analysis Report
+                </h1>
+                <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Report Generated: {new Date().toLocaleDateString()}
+                </p>
+                <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Site Address: {siteAddress}
+                </p>
+                <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Total Components Analyzed: {analysisResults.length}
+                </p>
               </div>
               {/* Logo */}
               <div className="w-20 h-20">
@@ -311,15 +327,17 @@ export default function Home() {
 
             {/* Introduction Section */}
             <div className="space-y-4">
-              <h2 className="text-xl font-medium">Introduction</h2>
-              <div className="prose prose-sm dark:prose-invert">
-                <p>
+              <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
+                Introduction
+              </h2>
+              <div className="space-y-4">
+                <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
                   This structural integrity analysis report provides a comprehensive assessment 
                   of various building components and infrastructure elements. The analysis was 
                   conducted using advanced visual inspection techniques and automated assessment 
                   tools to identify potential issues and maintenance requirements.
                 </p>
-                <p>
+                <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
                   Each component has been thoroughly examined for signs of wear, damage, or 
                   deterioration. The report includes detailed observations and specific 
                   maintenance recommendations for each analyzed component.
@@ -327,36 +345,34 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Components Analysis Section */}
+            {/* Components Analysis Section - Now without images */}
             <div className="space-y-12">
-              <h2 className="text-xl font-medium">Component Analysis</h2>
+              <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
+                Component Analysis
+              </h2>
               {analysisResults.map((result, index) => (
                 <div key={index} className="space-y-8">
-                  <h3 className="text-lg font-medium capitalize">
-                    {result.component_type}
+                  <h3 className="text-lg font-medium capitalize focus:outline-none" contentEditable suppressContentEditableWarning>
+                    {result.component_type} (See Figure A.{index + 1})
                   </h3>
-
-                  {/* Centered image and caption */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-1/2 aspect-square">
-                      <img
-                        src={URL.createObjectURL(selectedFiles[index])}
-                        alt={selectedFiles[index].name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2">{selectedFiles[index].name}</p>
-                  </div>
 
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Condition Assessment</h4>
-                      <p className="text-sm mt-1">{result.condition_description}</p>
+                      <h4 className="text-sm font-medium text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        Condition Assessment
+                      </h4>
+                      <p className="text-sm mt-1 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        {result.condition_description}
+                      </p>
                     </div>
                     
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Recommended Actions</h4>
-                      <p className="text-sm mt-1">{result.maintenance_recommendations}</p>
+                      <h4 className="text-sm font-medium text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        Recommended Actions
+                      </h4>
+                      <p className="text-sm mt-1 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        {result.maintenance_recommendations}
+                      </p>
                     </div>
                   </div>
 
@@ -369,13 +385,43 @@ export default function Home() {
 
             {/* Report Summary */}
             <div className="border-t border-black/[.08] dark:border-white/[.145] pt-6">
-              <h2 className="text-lg font-medium mb-4">Summary</h2>
-              <p className="text-sm">
+              <h2 className="text-lg font-medium mb-4 focus:outline-none" contentEditable suppressContentEditableWarning>
+                Summary
+              </h2>
+              <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
                 This report details the structural analysis of {analysisResults.length} components. 
                 Maintenance recommendations have been provided based on the condition assessment 
                 of each component. Regular monitoring and implementation of the recommended 
                 actions will help maintain the structural integrity and longevity of the analyzed components.
               </p>
+            </div>
+
+            {/* New Appendix Section */}
+            <div className="border-t border-black/[.08] dark:border-white/[.145] pt-12">
+              <h2 className="text-xl font-medium mb-8 focus:outline-none" contentEditable suppressContentEditableWarning>
+                Appendix: Component Images
+              </h2>
+              <div className="space-y-12">
+                {analysisResults.map((result, index) => (
+                  <div key={index} className="space-y-4">
+                    <h3 className="text-lg font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
+                      Figure A.{index + 1}: {result.component_type}
+                    </h3>
+                    <div className="flex flex-col items-center">
+                      <div className="w-full max-w-2xl aspect-square">
+                        <img
+                          src={URL.createObjectURL(imageData[index].originalFile)}
+                          alt={`Figure A.${index + 1}: ${result.component_type}`}
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500 mt-4 max-w-2xl text-center focus:outline-none" contentEditable suppressContentEditableWarning>
+                        Figure A.{index + 1}: {result.component_type} - {imageData[index].description || 'No description provided'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -384,38 +430,46 @@ export default function Home() {
   }
 
   if (isAnalyzing) {
-    if (analysisResults.length === 0) {
-      return (
-        <div className="grid place-items-center h-screen font-[family-name:var(--font-geist-sans)]">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-black/[.08] border-t-foreground rounded-full animate-spin" />
-            <p className="text-sm text-gray-500">Analyzing your images...</p>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
-        <h1 className="text-2xl font-bold text-center mb-6">Analysis Results</h1>
-        
+        {/* Header - increased margin-bottom from mb-6 to mb-12 */}
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-2xl font-bold">Analysis Results</h1>
+          <div className="flex gap-4">
+            <button
+              onClick={handleNewAnalysis}
+              className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25]"
+            >
+              New Analysis
+            </button>
+            <button
+              onClick={handleGenerateReport}
+              className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            >
+              Generate Report
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content */}
         <div className="w-full h-full flex gap-6 max-h-[calc(100vh-180px)]">
-          {/* Scrollable thumbnail gallery with adjusted scrollbar position */}
-          <div className="w-32 flex-none overflow-y-auto hover:overflow-y-auto">
-            <div className="flex flex-col gap-3 px-2 py-2 pr-4">
-              {selectedFiles.map((file, index) => (
-                <div 
+          {/* Scrollable thumbnail gallery */}
+          <div className="w-32 flex-none overflow-y-auto">
+            <div className="flex flex-col gap-3">
+              {imageData.map((data, index) => (
+                <div
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
-                  className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer flex-none
-                    ${selectedImageIndex === index 
-                      ? 'ring-2 ring-foreground ring-offset-1' 
-                      : 'hover:ring-2 hover:ring-foreground/50 hover:ring-offset-1'}`}
+                  className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 
+                    ${index === selectedImageIndex 
+                      ? 'border-foreground' 
+                      : 'border-transparent'
+                    }`}
                 >
                   <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="w-full h-full object-cover"
+                    src={URL.createObjectURL(data.file)}
+                    alt={`Upload ${index + 1}`}
+                    className="object-cover w-full h-full"
                   />
                 </div>
               ))}
@@ -436,7 +490,7 @@ export default function Home() {
             {/* Analysis details */}
             <div className="w-96 flex-none flex flex-col overflow-y-auto">
               <h2 className="text-lg font-medium truncate mb-4">
-                {selectedFiles[selectedImageIndex].name}
+                {imageData[selectedImageIndex].file.name}
               </h2>
               <div className="bg-black/[.03] dark:bg-white/[.03] p-4 rounded-lg flex-1">
                 {analysisResults[selectedImageIndex] && (
@@ -450,25 +504,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="flex gap-4 justify-center mt-6">
-          <button
-            onClick={() => {
-              setIsAnalyzing(false);
-              setAnalysisResults([]);
-              setSelectedFiles([]);
-            }}
-            className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25]"
-          >
-            New Analysis
-          </button>
-          <button
-            onClick={handleGenerateReport}
-            className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
-          >
-            Generate Report
-          </button>
         </div>
       </div>
     );
@@ -547,6 +582,7 @@ export default function Home() {
                     setSelectedFiles(prev => [...prev, ...newFiles]);
                     setImageData(prev => [...prev, ...newFiles.map(file => ({
                       file,
+                      originalFile: file,
                       description: ''
                     }))]);
                   }
@@ -645,23 +681,6 @@ export default function Home() {
               </ul>
             </div>
           )}
-
-          <button
-            onClick={() => {
-              setIsAnnotating(true);
-              setIsAnalyzing(false);
-              setAnalysisResults([]);
-              setSelectedFiles([]);
-            }}
-            disabled={selectedFiles.length === 0}
-            className={`rounded-full border border-solid transition-colors flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-8 sm:px-10 w-full max-w-[200px]
-              ${selectedFiles.length > 0
-                ? 'border-transparent bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc]' 
-                : 'border-black/[.08] dark:border-white/[.145] bg-[#f2f2f2] dark:bg-[#1a1a1a] text-gray-400 cursor-not-allowed'
-              }`}
-          >
-            Begin Annotation
-          </button>
         </div>
       </main>
 
