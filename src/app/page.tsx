@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, DragEvent, useRef, useEffect } from 'react';
 import { analyseImage, AnalysisResult, ImageData } from '@/lib/analysis';
+import { Loader } from "@/components/ui/loader";
 
 interface Annotation {
   points: { x: number; y: number }[];
@@ -424,6 +425,18 @@ export default function Home() {
   }
 
   if (isAnalyzing) {
+    if (analysisResults.length === 0) {
+      return (
+        <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
+          <div className="flex flex-col items-center justify-center h-full gap-4 col-start-1 row-start-2">
+            <Loader className="text-foreground" />
+            <h1 className="text-2xl font-bold">Analyzing Images</h1>
+            <p className="text-sm text-gray-500">This may take a few moments...</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
         {/* Header - increased margin-bottom from mb-6 to mb-12 */}
