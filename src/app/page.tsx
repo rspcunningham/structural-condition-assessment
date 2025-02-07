@@ -86,6 +86,15 @@ export default function Home() {
     setSelectedImageIndex(0);
   };
 
+  const runAnalysis = async () => {
+    const results = await Promise.all(
+      selectedFiles.map(async file => {
+        const base64Image = await fileToBase64(file);
+        return analyseImage(base64Image);
+      })
+    );
+    setAnalysisResults(results);
+  };
   // Drawing functions
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -411,9 +420,11 @@ export default function Home() {
               Next
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 setIsAnnotating(false);
                 setIsAnalyzing(true);
+                await runAnalysis();
+                setIsAnalyzing(false);
               }}
               className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
             >
