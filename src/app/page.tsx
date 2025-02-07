@@ -308,9 +308,8 @@ export default function Home() {
   if (isShowingReport) {
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-12">
-          <h1 className="text-2xl font-bold">Structural Analysis Report</h1>
+        {/* Header - removed the h1 title */}
+        <div className="flex justify-end items-center mb-12">
           <div className="flex gap-4">
             <button
               onClick={() => setIsShowingReport(false)}
@@ -333,7 +332,7 @@ export default function Home() {
             <div className="flex justify-between items-start border-b border-black/[.08] dark:border-white/[.145] pb-6">
               <div>
                 <h1 className="text-2xl font-bold mb-4 focus:outline-none" contentEditable suppressContentEditableWarning>
-                  Structural Analysis Report
+                  Building Condition Assessment
                 </h1>
                 <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
                   Report Generated: {new Date().toLocaleDateString()}
@@ -348,7 +347,7 @@ export default function Home() {
               {/* Logo */}
               <div className="w-20 h-20">
                 <img 
-                  src="/logo.svg" 
+                  src="/cion.svg" 
                   alt="Company Logo" 
                   className="w-full h-full object-contain"
                 />
@@ -367,7 +366,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Components Analysis Section - Now without images */}
+            {/* Components Analysis Section */}
             <div className="space-y-12">
               <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
                 Component Analysis
@@ -375,7 +374,21 @@ export default function Home() {
               {analysisResults.map((result, index) => (
                 <div key={index} className="space-y-8">
                   <h3 className="text-lg font-medium capitalize focus:outline-none" contentEditable suppressContentEditableWarning>
-                    {result.component_type} (See Figure A.{index + 1})
+                    {result.component_type} (
+                    <a 
+                      href={`#figure-${index + 1}`} 
+                      className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(`figure-${index + 1}`)?.scrollIntoView({ 
+                          behavior: 'smooth',
+                          block: 'start'
+                        });
+                      }}
+                    >
+                      See Figure A.{index + 1}
+                    </a>
+                    )
                   </h3>
 
                   <div className="space-y-4">
@@ -415,14 +428,18 @@ export default function Home() {
               </p>
             </div>
 
-            {/* New Appendix Section */}
+            {/* Appendix Section - Add IDs to each figure */}
             <div className="border-t border-black/[.08] dark:border-white/[.145] pt-12">
               <h2 className="text-xl font-medium mb-8 focus:outline-none" contentEditable suppressContentEditableWarning>
                 Appendix: Component Images
               </h2>
               <div className="space-y-12">
                 {analysisResults.map((result, index) => (
-                  <div key={index} className="space-y-4">
+                  <div 
+                    key={index} 
+                    id={`figure-${index + 1}`}  // Add ID for linking
+                    className="space-y-4 scroll-mt-8"  // Add scroll margin for better positioning
+                  >
                     <h3 className="text-lg font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
                       Figure A.{index + 1}: {result.component_type}
                     </h3>
@@ -616,6 +633,8 @@ export default function Home() {
                       originalFile: file,
                       description: ''
                     }))]);
+                    // Set current image index to the first new image
+                    setCurrentImageIndex(selectedFiles.length);
                   }
                 }}
                 className="hidden"
