@@ -424,7 +424,7 @@ export default function Home() {
                 setIsAnnotating(false);
                 setIsAnalyzing(true);
                 await runAnalysis();
-                setIsAnalyzing(false);
+                //setIsAnalyzing(false);
               }}
               className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
             >
