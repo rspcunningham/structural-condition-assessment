@@ -24,6 +24,7 @@ export default function Home() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -68,6 +69,7 @@ export default function Home() {
   const handleUpload = (files: File[]) => {
     setSelectedFiles(files);
     setAnnotations(new Array(files.length).fill([]));
+    setImageDescriptions(new Array(files.length).fill(''));
     setIsAnnotating(true);
     setCurrentImageIndex(0);
   };
@@ -171,6 +173,15 @@ export default function Home() {
       }
     };
   }, [currentImageIndex, annotations, currentAnnotation, selectedFiles]);
+
+  // Handle description changes
+  const handleDescriptionChange = (description: string) => {
+    setImageDescriptions(prev => {
+      const newDescriptions = [...prev];
+      newDescriptions[currentImageIndex] = description;
+      return newDescriptions;
+    });
+  };
 
   if (isShowingReport) {
     return (
@@ -381,8 +392,9 @@ export default function Home() {
   if (isAnnotating) {
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Annotate Images</h1>
+          <h1 className="text-2xl font-bold">{selectedFiles[currentImageIndex].name}</h1>
           <div className="flex gap-4">
             <button
               onClick={() => setCurrentImageIndex(prev => Math.max(0, prev - 1))}
@@ -410,27 +422,59 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex gap-6 h-full">
-          <div className="flex-1 relative">
-            <canvas
-              ref={canvasRef}
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              className="border border-black/[.08] dark:border-white/[.145] rounded-lg"
-            />
+        {/* Main Content */}
+        <div className="flex justify-center items-center gap-6 h-full max-w-7xl mx-auto">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="relative w-full max-w-3xl">
+              <canvas
+                ref={canvasRef}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                className="border border-black/[.08] dark:border-white/[.145] rounded-lg w-full h-auto"
+              />
+            </div>
           </div>
           
-          <div className="w-64 flex-none space-y-4">
+          <div className="w-64 flex-none self-center space-y-4">
+            {/* Description Input */}
             <div className="p-4 bg-black/[.03] dark:bg-white/[.03] rounded-lg">
-              <h3 className="text-sm font-medium mb-2">Tools</h3>
-              {/* Add color picker and line width controls here */}
+              <h3 className="text-sm font-medium mb-2">Description</h3>
+              <textarea
+                value={imageDescriptions[currentImageIndex] || ''}
+                onChange={(e) => handleDescriptionChange(e.target.value)}
+                placeholder="Add notes about this image..."
+                className="w-full min-h-[200px] p-2 text-sm rounded-lg border border-black/[.08] dark:border-white/[.145] bg-transparent
+                  placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-foreground resize-none"
+              />
             </div>
             
             <div className="p-4 bg-black/[.03] dark:bg-white/[.03] rounded-lg">
               <h3 className="text-sm font-medium mb-2">Image {currentImageIndex + 1} of {selectedFiles.length}</h3>
               <p className="text-sm text-gray-500">{selectedFiles[currentImageIndex].name}</p>
+              
+              <input
+                id="add-more-images"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files) {
+                    const newFiles = Array.from(e.target.files);
+                    setSelectedFiles(prev => [...prev, ...newFiles]);
+                    setAnnotations(prev => [...prev, ...new Array(newFiles.length).fill([])]);
+                    setImageDescriptions(prev => [...prev, ...new Array(newFiles.length).fill('')]);
+                  }
+                }}
+                className="hidden"
+              />
+              <label 
+                htmlFor="add-more-images"
+                className="mt-4 flex items-center justify-center rounded-lg border border-black/[.08] dark:border-white/[.145] px-4 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25] cursor-pointer"
+              >
+                Add More Images
+              </label>
             </div>
           </div>
         </div>
