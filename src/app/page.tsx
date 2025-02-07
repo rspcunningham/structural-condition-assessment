@@ -4,11 +4,6 @@ import { useState, ChangeEvent, DragEvent, useRef, useEffect } from 'react';
 import { analyseImage, AnalysisResult, ImageData } from '@/lib/analysis';
 import { Loader } from "@/components/ui/loader";
 import { generateReport } from '@/lib/report';
-interface Annotation {
-  points: { x: number; y: number }[];
-  color: string;
-  width: number;
-}
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
