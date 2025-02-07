@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-function Loader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function Loader({ className }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <svg
       className={cn("animate-spin", className)}
