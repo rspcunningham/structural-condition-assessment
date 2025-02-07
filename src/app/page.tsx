@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, ChangeEvent, DragEvent } from 'react';
+import { useState, ChangeEvent, DragEvent, useRef, useEffect } from 'react';
 import { analyseImage, AnalysisResult } from '@/lib/analysis';
 
+interface Annotation {
+  points: { x: number; y: number }[];
+  color: string;
+  width: number;
+}
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -11,10 +16,18 @@ export default function Home() {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [isShowingReport, setIsShowingReport] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [siteAddress, setSiteAddress] = useState('');
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [annotations, setAnnotations] = useState<Annotation[][]>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      setSelectedFiles(Array.from(event.target.files));
+      handleUpload(Array.from(event.target.files));
     }
   };
 
@@ -33,7 +46,7 @@ export default function Home() {
     setIsDragging(false);
     
     if (event.dataTransfer.files) {
-      setSelectedFiles(Array.from(event.dataTransfer.files));
+      handleUpload(Array.from(event.dataTransfer.files));
     }
   };
 
@@ -52,23 +65,11 @@ export default function Home() {
     });
   };
 
-  const handleUpload = async (): Promise<void> => {
-    if (selectedFiles.length === 0) return;
-    
-    setIsAnalyzing(true);
-    
-    try {
-      const results = await Promise.all(
-        selectedFiles.map(async file => {
-          const base64Image = await fileToBase64(file);
-          return analyseImage(base64Image);
-        })
-      );
-      setAnalysisResults(results);
-    } catch (error) {
-      console.error('Error analyzing images:', error);
-      // You might want to add error handling UI here
-    }
+  const handleUpload = (files: File[]) => {
+    setSelectedFiles(files);
+    setAnnotations(new Array(files.length).fill([]));
+    setIsAnnotating(true);
+    setCurrentImageIndex(0);
   };
 
   const handleGenerateReport = () => {
@@ -82,6 +83,94 @@ export default function Home() {
     setSelectedFiles([]);
     setSelectedImageIndex(0);
   };
+
+  // Drawing functions
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setIsDrawing(true);
+    setCurrentAnnotation({
+      points: [{ x, y }],
+      color: '#FF0000', // Default red color
+      width: 2
+    });
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !currentAnnotation || !canvasRef.current) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setCurrentAnnotation({
+      ...currentAnnotation,
+      points: [...currentAnnotation.points, { x, y }]
+    });
+  };
+
+  const stopDrawing = () => {
+    if (currentAnnotation) {
+      setAnnotations(prev => {
+        const newAnnotations = [...prev];
+        newAnnotations[currentImageIndex] = [...(newAnnotations[currentImageIndex] || []), currentAnnotation];
+        return newAnnotations;
+      });
+    }
+    setIsDrawing(false);
+    setCurrentAnnotation(null);
+  };
+
+  // Draw annotations on canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the current image
+    const img = new Image();
+    img.src = URL.createObjectURL(selectedFiles[currentImageIndex]);
+    img.onload = () => {
+      // Set canvas size to match image
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // Draw saved annotations
+      annotations[currentImageIndex]?.forEach(annotation => {
+        if (annotation.points.length < 2) return;
+        
+        ctx.beginPath();
+        ctx.moveTo(annotation.points[0].x, annotation.points[0].y);
+        annotation.points.forEach(point => {
+          ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = annotation.color;
+        ctx.lineWidth = annotation.width;
+        ctx.stroke();
+      });
+
+      // Draw current annotation
+      if (currentAnnotation?.points.length) {
+        ctx.beginPath();
+        ctx.moveTo(currentAnnotation.points[0].x, currentAnnotation.points[0].y);
+        currentAnnotation.points.forEach(point => {
+          ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = currentAnnotation.color;
+        ctx.lineWidth = currentAnnotation.width;
+        ctx.stroke();
+      }
+    };
+  }, [currentImageIndex, annotations, currentAnnotation, selectedFiles]);
 
   if (isShowingReport) {
     return (
@@ -111,6 +200,7 @@ export default function Home() {
               <div>
                 <h1 className="text-2xl font-bold mb-4">Structural Analysis Report</h1>
                 <p className="text-sm text-gray-500">Report Generated: {new Date().toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500">Site Address: {siteAddress}</p>
                 <p className="text-sm text-gray-500">Total Components Analyzed: {analysisResults.length}</p>
               </div>
               {/* Logo */}
@@ -288,12 +378,92 @@ export default function Home() {
     );
   }
 
+  if (isAnnotating) {
+    return (
+      <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Annotate Images</h1>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setCurrentImageIndex(prev => Math.max(0, prev - 1))}
+              disabled={currentImageIndex === 0}
+              className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25] disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentImageIndex(prev => Math.min(selectedFiles.length - 1, prev + 1))}
+              disabled={currentImageIndex === selectedFiles.length - 1}
+              className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25] disabled:opacity-50"
+            >
+              Next
+            </button>
+            <button
+              onClick={() => {
+                setIsAnnotating(false);
+                setIsAnalyzing(true);
+              }}
+              className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            >
+              Begin Analysis
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-6 h-full">
+          <div className="flex-1 relative">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              className="border border-black/[.08] dark:border-white/[.145] rounded-lg"
+            />
+          </div>
+          
+          <div className="w-64 flex-none space-y-4">
+            <div className="p-4 bg-black/[.03] dark:bg-white/[.03] rounded-lg">
+              <h3 className="text-sm font-medium mb-2">Tools</h3>
+              {/* Add color picker and line width controls here */}
+            </div>
+            
+            <div className="p-4 bg-black/[.03] dark:bg-white/[.03] rounded-lg">
+              <h3 className="text-sm font-medium mb-2">Image {currentImageIndex + 1} of {selectedFiles.length}</h3>
+              <p className="text-sm text-gray-500">{selectedFiles[currentImageIndex].name}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center w-full max-w-2xl">
-        <h1 className="text-2xl font-bold">Structural Integrity Analysis</h1>
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-6 row-start-2 items-center w-full max-w-2xl">
+        <img 
+          src="/LUNCHTIME.png" 
+          alt="LUNCHTIME" 
+          className="h-24 sm:h-32 object-contain -mt-20"
+        />
         
         <div className="flex flex-col items-center gap-6 w-full">
+          <div className="w-full">
+            <label htmlFor="site-address" className="block text-sm font-medium mb-2">
+              Building Site Address
+            </label>
+            <input
+              id="site-address"
+              type="text"
+              value={siteAddress}
+              onChange={(e) => setSiteAddress(e.target.value)}
+              placeholder="Enter the building site address"
+              className="w-full p-3 rounded-lg border border-black/[.08] dark:border-white/[.145] bg-transparent
+                placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-foreground"
+              required
+            />
+          </div>
+
           <div 
             className={`w-full aspect-[3/2] border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-colors
               ${isDragging 
@@ -348,7 +518,12 @@ export default function Home() {
           )}
 
           <button
-            onClick={handleUpload}
+            onClick={() => {
+              setIsAnnotating(true);
+              setIsAnalyzing(false);
+              setAnalysisResults([]);
+              setSelectedFiles([]);
+            }}
             disabled={selectedFiles.length === 0}
             className={`rounded-full border border-solid transition-colors flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-8 sm:px-10 w-full max-w-[200px]
               ${selectedFiles.length > 0
@@ -356,7 +531,7 @@ export default function Home() {
                 : 'border-black/[.08] dark:border-white/[.145] bg-[#f2f2f2] dark:bg-[#1a1a1a] text-gray-400 cursor-not-allowed'
               }`}
           >
-            Begin Analysis
+            Begin Annotation
           </button>
         </div>
       </main>
