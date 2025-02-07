@@ -18,15 +18,11 @@ export default function Home() {
   const [isShowingReport, setIsShowingReport] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [siteAddress, setSiteAddress] = useState('');
-  const reportRef = useRef<HTMLDivElement>(null);
   const [isAnnotating, setIsAnnotating] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [annotations, setAnnotations] = useState<Annotation[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<{points: {x: number, y: number}[]} | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [imageData, setImageData] = useState<ImageData[]>([]);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -170,12 +166,12 @@ export default function Home() {
       ctx.drawImage(img, 0, 0);
 
       // Draw saved annotations
-      drawAnnotations();
+      //drawAnnotations();
     };
   }, [currentImageIndex, selectedFiles]); // Only re-run when image changes
 
   // Separate function for drawing annotations
-  const drawAnnotations = () => {
+  /*const drawAnnotations = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
@@ -193,7 +189,7 @@ export default function Home() {
       ctx.lineWidth = annotation.width;
       ctx.stroke();
     });
-  };
+  };*/
 
   // Effect for drawing current annotation
   useEffect(() => {
@@ -208,7 +204,7 @@ export default function Home() {
     img.src = URL.createObjectURL(selectedFiles[currentImageIndex]);
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
-      drawAnnotations();
+      //drawAnnotations();
 
       // Draw current annotation
       if (currentAnnotation.points.length) {
@@ -235,11 +231,11 @@ export default function Home() {
       return newData;
     });
     
-    setImageDescriptions(prev => {
+    /*setImageDescriptions(prev => {
       const newDescriptions = [...prev];
       newDescriptions[currentImageIndex] = description;
       return newDescriptions;
-    });
+    });*/
   };
 
   // When clicking "Begin Analysis" button in annotation view
