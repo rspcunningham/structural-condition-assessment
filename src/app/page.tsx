@@ -282,7 +282,8 @@ export default function Home() {
   if (isShowingReport) {
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
-        <div className="flex justify-between items-center mb-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-12">
           <h1 className="text-2xl font-bold">Structural Analysis Report</h1>
           <div className="flex gap-4">
             <button
@@ -305,10 +306,18 @@ export default function Home() {
             {/* Report Header */}
             <div className="flex justify-between items-start border-b border-black/[.08] dark:border-white/[.145] pb-6">
               <div>
-                <h1 className="text-2xl font-bold mb-4">Structural Analysis Report</h1>
-                <p className="text-sm text-gray-500">Report Generated: {new Date().toLocaleDateString()}</p>
-                <p className="text-sm text-gray-500">Site Address: {siteAddress}</p>
-                <p className="text-sm text-gray-500">Total Components Analyzed: {analysisResults.length}</p>
+                <h1 className="text-2xl font-bold mb-4 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Structural Analysis Report
+                </h1>
+                <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Report Generated: {new Date().toLocaleDateString()}
+                </p>
+                <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Site Address: {siteAddress}
+                </p>
+                <p className="text-sm text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                  Total Components Analyzed: {analysisResults.length}
+                </p>
               </div>
               {/* Logo */}
               <div className="w-20 h-20">
@@ -322,15 +331,17 @@ export default function Home() {
 
             {/* Introduction Section */}
             <div className="space-y-4">
-              <h2 className="text-xl font-medium">Introduction</h2>
+              <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
+                Introduction
+              </h2>
               <div className="prose prose-sm dark:prose-invert">
-                <p>
+                <p className="focus:outline-none" contentEditable suppressContentEditableWarning>
                   This structural integrity analysis report provides a comprehensive assessment 
                   of various building components and infrastructure elements. The analysis was 
                   conducted using advanced visual inspection techniques and automated assessment 
                   tools to identify potential issues and maintenance requirements.
                 </p>
-                <p>
+                <p className="focus:outline-none" contentEditable suppressContentEditableWarning>
                   Each component has been thoroughly examined for signs of wear, damage, or 
                   deterioration. The report includes detailed observations and specific 
                   maintenance recommendations for each analyzed component.
@@ -340,34 +351,46 @@ export default function Home() {
 
             {/* Components Analysis Section */}
             <div className="space-y-12">
-              <h2 className="text-xl font-medium">Component Analysis</h2>
+              <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
+                Component Analysis
+              </h2>
               {analysisResults.map((result, index) => (
                 <div key={index} className="space-y-8">
-                  <h3 className="text-lg font-medium capitalize">
+                  <h3 className="text-lg font-medium capitalize focus:outline-none" contentEditable suppressContentEditableWarning>
                     {result.component_type}
                   </h3>
 
-                  {/* Centered image and caption */}
+                  {/* Image and caption */}
                   <div className="flex flex-col items-center">
                     <div className="w-1/2 aspect-square">
                       <img
-                        src={URL.createObjectURL(selectedFiles[index])}
-                        alt={selectedFiles[index].name}
+                        src={URL.createObjectURL(imageData[index].file)}
+                        alt={imageData[index].file.name}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     </div>
-                    <p className="text-sm text-gray-500 mt-2">{selectedFiles[index].name}</p>
+                    <p className="text-sm text-gray-500 mt-2 focus:outline-none" contentEditable suppressContentEditableWarning>
+                      {imageData[index].file.name}
+                    </p>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Condition Assessment</h4>
-                      <p className="text-sm mt-1">{result.condition_description}</p>
+                      <h4 className="text-sm font-medium text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        Condition Assessment
+                      </h4>
+                      <p className="text-sm mt-1 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        {result.condition_description}
+                      </p>
                     </div>
                     
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Recommended Actions</h4>
-                      <p className="text-sm mt-1">{result.maintenance_recommendations}</p>
+                      <h4 className="text-sm font-medium text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        Recommended Actions
+                      </h4>
+                      <p className="text-sm mt-1 focus:outline-none" contentEditable suppressContentEditableWarning>
+                        {result.maintenance_recommendations}
+                      </p>
                     </div>
                   </div>
 
@@ -380,8 +403,10 @@ export default function Home() {
 
             {/* Report Summary */}
             <div className="border-t border-black/[.08] dark:border-white/[.145] pt-6">
-              <h2 className="text-lg font-medium mb-4">Summary</h2>
-              <p className="text-sm">
+              <h2 className="text-lg font-medium mb-4 focus:outline-none" contentEditable suppressContentEditableWarning>
+                Summary
+              </h2>
+              <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
                 This report details the structural analysis of {analysisResults.length} components. 
                 Maintenance recommendations have been provided based on the condition assessment 
                 of each component. Regular monitoring and implementation of the recommended 
