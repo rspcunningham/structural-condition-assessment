@@ -3,7 +3,7 @@
 import { useState, ChangeEvent, DragEvent, useRef, useEffect } from 'react';
 import { analyseImage, AnalysisResult, ImageData } from '@/lib/analysis';
 import { Loader } from "@/components/ui/loader";
-
+import { generateReport } from '@/lib/report';
 interface Annotation {
   points: { x: number; y: number }[];
   color: string;
@@ -29,6 +29,9 @@ export default function Home() {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [imageData, setImageData] = useState<ImageData[]>([]);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [introduction, setIntroduction] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -66,8 +69,13 @@ export default function Home() {
     setIsAnnotating(true);
   };
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
+    setIsGeneratingReport(true);
+    const report = await generateReport(siteAddress, analysisResults);
+    setIntroduction(report.introduction);
+    setSummary(report.summary);
     setIsShowingReport(true);
+    setIsGeneratingReport(false);
   };
 
   const handleNewAnalysis = () => {
@@ -241,34 +249,61 @@ export default function Home() {
     await runAnalysis(); // Make sure we run the analysis after state changes
   };
 
+  // Update the useEffect for Google Maps
   useEffect(() => {
-    // Load Google Maps JavaScript API
+    // Check if the script is already loaded
+    if (window.google) {
+      initAutocomplete();
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
     script.async = true;
-    script.onload = initAutocomplete;
+    script.defer = true;
+    
+    script.onload = () => {
+      initAutocomplete();
+    };
+
     document.head.appendChild(script);
 
     return () => {
-      document.head.removeChild(script);
+      // Clean up script only if we added it
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
     };
   }, []);
 
   const initAutocomplete = () => {
-    if (!inputRef.current) return;
+    if (!inputRef.current || !window.google) return;
 
-    autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ['address'],
-      componentRestrictions: { country: ['ca'] }, // Optional: restrict to specific countries
+      componentRestrictions: { country: ['ca'] },
+      fields: ['formatted_address', 'geometry']
     });
 
-    autocompleteRef.current.addListener('place_changed', () => {
-      const place = autocompleteRef.current?.getPlace();
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
       if (place?.formatted_address) {
         setSiteAddress(place.formatted_address);
       }
     });
   };
+
+  if (isGeneratingReport) {
+    return (
+      <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
+        <div className="flex flex-col items-center justify-center h-full gap-4 col-start-1 row-start-2">
+          <Loader className="text-foreground" />
+          <h1 className="text-2xl font-bold">Generating Report</h1>
+          <p className="text-sm text-gray-500">This may take a few moments...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isShowingReport) {
     return (
@@ -327,15 +362,7 @@ export default function Home() {
               </h2>
               <div className="space-y-4">
                 <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
-                  This structural integrity analysis report provides a comprehensive assessment 
-                  of various building components and infrastructure elements. The analysis was 
-                  conducted using advanced visual inspection techniques and automated assessment 
-                  tools to identify potential issues and maintenance requirements.
-                </p>
-                <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
-                  Each component has been thoroughly examined for signs of wear, damage, or 
-                  deterioration. The report includes detailed observations and specific 
-                  maintenance recommendations for each analyzed component.
+                  {introduction}
                 </p>
               </div>
             </div>
@@ -384,10 +411,7 @@ export default function Home() {
                 Summary
               </h2>
               <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
-                This report details the structural analysis of {analysisResults.length} components. 
-                Maintenance recommendations have been provided based on the condition assessment 
-                of each component. Regular monitoring and implementation of the recommended 
-                actions will help maintain the structural integrity and longevity of the analyzed components.
+                {summary}
               </p>
             </div>
 
