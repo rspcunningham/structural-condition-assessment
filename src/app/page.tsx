@@ -670,23 +670,6 @@ export default function Home() {
               </ul>
             </div>
           )}
-
-          <button
-            onClick={() => {
-              setIsAnnotating(true);
-              setIsAnalyzing(false);
-              setAnalysisResults([]);
-              setSelectedFiles([]);
-            }}
-            disabled={selectedFiles.length === 0}
-            className={`rounded-full border border-solid transition-colors flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-8 sm:px-10 w-full max-w-[200px]
-              ${selectedFiles.length > 0
-                ? 'border-transparent bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc]' 
-                : 'border-black/[.08] dark:border-white/[.145] bg-[#f2f2f2] dark:bg-[#1a1a1a] text-gray-400 cursor-not-allowed'
-              }`}
-          >
-            Begin Annotation
-          </button>
         </div>
       </main>
 
