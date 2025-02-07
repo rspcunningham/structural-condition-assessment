@@ -25,6 +25,8 @@ export default function Home() {
   const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -189,6 +191,35 @@ export default function Home() {
       const newDescriptions = [...prev];
       newDescriptions[currentImageIndex] = description;
       return newDescriptions;
+    });
+  };
+
+  useEffect(() => {
+    // Load Google Maps JavaScript API
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.async = true;
+    script.onload = initAutocomplete;
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
+  const initAutocomplete = () => {
+    if (!inputRef.current) return;
+
+    autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+      types: ['address'],
+      componentRestrictions: { country: ['ca'] }, // Optional: restrict to specific countries
+    });
+
+    autocompleteRef.current.addListener('place_changed', () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (place?.formatted_address) {
+        setSiteAddress(place.formatted_address);
+      }
     });
   };
 
@@ -508,6 +539,7 @@ export default function Home() {
               Building Site Address
             </label>
             <input
+              ref={inputRef}
               id="site-address"
               type="text"
               value={siteAddress}
