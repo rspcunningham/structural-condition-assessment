@@ -336,14 +336,14 @@ export default function Home() {
               <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
                 Introduction
               </h2>
-              <div className="prose prose-sm dark:prose-invert">
-                <p className="focus:outline-none" contentEditable suppressContentEditableWarning>
+              <div className="space-y-4">
+                <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
                   This structural integrity analysis report provides a comprehensive assessment 
                   of various building components and infrastructure elements. The analysis was 
                   conducted using advanced visual inspection techniques and automated assessment 
                   tools to identify potential issues and maintenance requirements.
                 </p>
-                <p className="focus:outline-none" contentEditable suppressContentEditableWarning>
+                <p className="text-sm focus:outline-none" contentEditable suppressContentEditableWarning>
                   Each component has been thoroughly examined for signs of wear, damage, or 
                   deterioration. The report includes detailed observations and specific 
                   maintenance recommendations for each analyzed component.
@@ -351,7 +351,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Components Analysis Section */}
+            {/* Components Analysis Section - Now without images */}
             <div className="space-y-12">
               <h2 className="text-xl font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
                 Component Analysis
@@ -359,22 +359,8 @@ export default function Home() {
               {analysisResults.map((result, index) => (
                 <div key={index} className="space-y-8">
                   <h3 className="text-lg font-medium capitalize focus:outline-none" contentEditable suppressContentEditableWarning>
-                    {result.component_type}
+                    {result.component_type} (See Figure A.{index + 1})
                   </h3>
-
-                  {/* Image and caption */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-1/2 aspect-square">
-                      <img
-                        src={URL.createObjectURL(imageData[index].originalFile)}
-                        alt={imageData[index].originalFile.name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2 focus:outline-none" contentEditable suppressContentEditableWarning>
-                      {imageData[index].originalFile.name}
-                    </p>
-                  </div>
 
                   <div className="space-y-4">
                     <div>
@@ -414,6 +400,34 @@ export default function Home() {
                 of each component. Regular monitoring and implementation of the recommended 
                 actions will help maintain the structural integrity and longevity of the analyzed components.
               </p>
+            </div>
+
+            {/* New Appendix Section */}
+            <div className="border-t border-black/[.08] dark:border-white/[.145] pt-12">
+              <h2 className="text-xl font-medium mb-8 focus:outline-none" contentEditable suppressContentEditableWarning>
+                Appendix: Component Images
+              </h2>
+              <div className="space-y-12">
+                {analysisResults.map((result, index) => (
+                  <div key={index} className="space-y-4">
+                    <h3 className="text-lg font-medium focus:outline-none" contentEditable suppressContentEditableWarning>
+                      Figure A.{index + 1}: {result.component_type}
+                    </h3>
+                    <div className="flex flex-col items-center">
+                      <div className="w-full max-w-2xl aspect-square">
+                        <img
+                          src={URL.createObjectURL(imageData[index].originalFile)}
+                          alt={`Figure A.${index + 1}: ${result.component_type}`}
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500 mt-4 max-w-2xl text-center focus:outline-none" contentEditable suppressContentEditableWarning>
+                        Figure A.{index + 1}: {result.component_type} - {imageData[index].description || 'No description provided'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
