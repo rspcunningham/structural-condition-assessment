@@ -1,17 +1,12 @@
 'use client';
 
 import { useState, ChangeEvent, DragEvent, useRef, useEffect } from 'react';
-import { analyseImage, AnalysisResult } from '@/lib/analysis';
+import { analyseImage, AnalysisResult, ImageData } from '@/lib/analysis';
 
 interface Annotation {
   points: { x: number; y: number }[];
   color: string;
   width: number;
-}
-
-interface ImageData {
-  file: File;
-  description: string;
 }
 
 export default function Home() {
@@ -59,21 +54,6 @@ export default function Home() {
     }
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to convert file to base64'));
-        }
-      };
-      reader.onerror = error => reject(error);
-    });
-  };
-
   const handleUpload = (files: File[]) => {
     setSelectedFiles(files);
     setImageData(files.map(file => ({
@@ -100,8 +80,8 @@ export default function Home() {
     try {
       const results = await Promise.all(
         imageData.map(async (data) => {
-          const base64Image = await fileToBase64(data.file);
-          return analyseImage(base64Image);
+          console.log(data);
+          return analyseImage(data);
         })
       );
       setAnalysisResults(results);
@@ -236,6 +216,15 @@ export default function Home() {
 
   // Handle description changes
   const handleDescriptionChange = (description: string) => {
+    setImageData(prev => {
+      const newData = [...prev];
+      newData[currentImageIndex] = {
+        ...newData[currentImageIndex],
+        description
+      };
+      return newData;
+    });
+    
     setImageDescriptions(prev => {
       const newDescriptions = [...prev];
       newDescriptions[currentImageIndex] = description;
@@ -535,7 +524,7 @@ export default function Home() {
             <div className="p-4 bg-black/[.03] dark:bg-white/[.03] rounded-lg">
               <h3 className="text-sm font-medium mb-2">Description</h3>
               <textarea
-                value={imageDescriptions[currentImageIndex] || ''}
+                value={imageData[currentImageIndex]?.description || ''}
                 onChange={(e) => handleDescriptionChange(e.target.value)}
                 placeholder="Add notes about this image..."
                 className="w-full min-h-[200px] p-2 text-sm rounded-lg border border-black/[.08] dark:border-white/[.145] bg-transparent
