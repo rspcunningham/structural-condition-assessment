@@ -364,38 +364,46 @@ export default function Home() {
   }
 
   if (isAnalyzing) {
-    if (analysisResults.length === 0) {
-      return (
-        <div className="grid place-items-center h-screen font-[family-name:var(--font-geist-sans)]">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-black/[.08] border-t-foreground rounded-full animate-spin" />
-            <p className="text-sm text-gray-500">Analyzing your images...</p>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="grid grid-rows-[auto_1fr_auto] h-screen p-8 font-[family-name:var(--font-geist-sans)]">
-        <h1 className="text-2xl font-bold text-center mb-6">Analysis Results</h1>
-        
+        {/* Header - increased margin-bottom from mb-6 to mb-12 */}
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-2xl font-bold">Analysis Results</h1>
+          <div className="flex gap-4">
+            <button
+              onClick={handleNewAnalysis}
+              className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25]"
+            >
+              New Analysis
+            </button>
+            <button
+              onClick={handleGenerateReport}
+              className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            >
+              Generate Report
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content */}
         <div className="w-full h-full flex gap-6 max-h-[calc(100vh-180px)]">
-          {/* Scrollable thumbnail gallery with adjusted scrollbar position */}
-          <div className="w-32 flex-none overflow-y-auto hover:overflow-y-auto">
-            <div className="flex flex-col gap-3 px-2 py-2 pr-4">
-              {selectedFiles.map((file, index) => (
-                <div 
+          {/* Scrollable thumbnail gallery */}
+          <div className="w-32 flex-none overflow-y-auto">
+            <div className="flex flex-col gap-3">
+              {imageData.map((data, index) => (
+                <div
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
-                  className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer flex-none
-                    ${selectedImageIndex === index 
-                      ? 'ring-2 ring-foreground ring-offset-1' 
-                      : 'hover:ring-2 hover:ring-foreground/50 hover:ring-offset-1'}`}
+                  className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 
+                    ${index === selectedImageIndex 
+                      ? 'border-foreground' 
+                      : 'border-transparent'
+                    }`}
                 >
                   <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="w-full h-full object-cover"
+                    src={URL.createObjectURL(data.file)}
+                    alt={`Upload ${index + 1}`}
+                    className="object-cover w-full h-full"
                   />
                 </div>
               ))}
@@ -416,7 +424,7 @@ export default function Home() {
             {/* Analysis details */}
             <div className="w-96 flex-none flex flex-col overflow-y-auto">
               <h2 className="text-lg font-medium truncate mb-4">
-                {selectedFiles[selectedImageIndex].name}
+                {imageData[selectedImageIndex].file.name}
               </h2>
               <div className="bg-black/[.03] dark:bg-white/[.03] p-4 rounded-lg flex-1">
                 {analysisResults[selectedImageIndex] && (
@@ -430,25 +438,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="flex gap-4 justify-center mt-6">
-          <button
-            onClick={() => {
-              setIsAnalyzing(false);
-              setAnalysisResults([]);
-              setSelectedFiles([]);
-            }}
-            className="rounded-full border border-black/[.08] dark:border-white/[.145] px-6 py-2 text-sm hover:border-black/[.15] dark:hover:border-white/[.25]"
-          >
-            New Analysis
-          </button>
-          <button
-            onClick={handleGenerateReport}
-            className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
-          >
-            Generate Report
-          </button>
         </div>
       </div>
     );
