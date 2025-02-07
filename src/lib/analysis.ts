@@ -9,6 +9,7 @@ export type AnalysisResult = {
 
 export interface ImageData {
     file: File;
+    originalFile: File;
     description: string;
 }
 

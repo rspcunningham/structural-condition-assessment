@@ -9,12 +9,6 @@ interface Annotation {
   width: number;
 }
 
-interface ImageData {
-  file: File;
-  originalFile: File;
-  description: string;
-}
-
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
