@@ -9,6 +9,11 @@ interface Annotation {
   width: number;
 }
 
+interface ImageData {
+  file: File;
+  description: string;
+}
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -22,9 +27,10 @@ export default function Home() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [annotations, setAnnotations] = useState<Annotation[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null);
+  const [currentAnnotation, setCurrentAnnotation] = useState<{points: {x: number, y: number}[]} | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
+  const [imageData, setImageData] = useState<ImageData[]>([]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -68,10 +74,12 @@ export default function Home() {
 
   const handleUpload = (files: File[]) => {
     setSelectedFiles(files);
-    setAnnotations(new Array(files.length).fill([]));
-    setImageDescriptions(new Array(files.length).fill(''));
-    setIsAnnotating(true);
+    setImageData(files.map(file => ({
+      file,
+      description: ''
+    })));
     setCurrentImageIndex(0);
+    setIsAnnotating(true);
   };
 
   const handleGenerateReport = () => {
@@ -87,14 +95,19 @@ export default function Home() {
   };
 
   const runAnalysis = async () => {
-    const results = await Promise.all(
-      selectedFiles.map(async file => {
-        const base64Image = await fileToBase64(file);
-        return analyseImage(base64Image);
-      })
-    );
-    setAnalysisResults(results);
+    try {
+      const results = await Promise.all(
+        imageData.map(async (data) => {
+          const base64Image = await fileToBase64(data.file);
+          return analyseImage(base64Image);
+        })
+      );
+      setAnalysisResults(results);
+    } catch (error) {
+      console.error('Analysis error:', error);
+    }
   };
+
   // Drawing functions
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -107,8 +120,6 @@ export default function Home() {
     setIsDrawing(true);
     setCurrentAnnotation({
       points: [{ x, y }],
-      color: '#FF0000', // Default red color
-      width: 2
     });
   };
 
@@ -126,27 +137,38 @@ export default function Home() {
   };
 
   const stopDrawing = () => {
-    if (currentAnnotation) {
-      setAnnotations(prev => {
-        const newAnnotations = [...prev];
-        newAnnotations[currentImageIndex] = [...(newAnnotations[currentImageIndex] || []), currentAnnotation];
-        return newAnnotations;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      
+      // Create a new File with the annotations drawn on it
+      const annotatedFile = new File([blob], imageData[currentImageIndex].file.name, {
+        type: 'image/png'
       });
-    }
+
+      // Update the imageData with the annotated version
+      setImageData(prev => {
+        const newData = [...prev];
+        newData[currentImageIndex] = {
+          ...newData[currentImageIndex],
+          file: annotatedFile // Replace the file with the annotated version
+        };
+        return newData;
+      });
+    }, 'image/png');
+
     setIsDrawing(false);
     setCurrentAnnotation(null);
   };
 
-  // Draw annotations on canvas
+  // Separate effect for loading the image
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw the current image
     const img = new Image();
     img.src = URL.createObjectURL(selectedFiles[currentImageIndex]);
     img.onload = () => {
@@ -156,32 +178,59 @@ export default function Home() {
       ctx.drawImage(img, 0, 0);
 
       // Draw saved annotations
-      annotations[currentImageIndex]?.forEach(annotation => {
-        if (annotation.points.length < 2) return;
-        
-        ctx.beginPath();
-        ctx.moveTo(annotation.points[0].x, annotation.points[0].y);
-        annotation.points.forEach(point => {
-          ctx.lineTo(point.x, point.y);
-        });
-        ctx.strokeStyle = annotation.color;
-        ctx.lineWidth = annotation.width;
-        ctx.stroke();
+      drawAnnotations();
+    };
+  }, [currentImageIndex, selectedFiles]); // Only re-run when image changes
+
+  // Separate function for drawing annotations
+  const drawAnnotations = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    // Draw saved annotations
+    annotations[currentImageIndex]?.forEach(annotation => {
+      if (annotation.points.length < 2) return;
+      
+      ctx.beginPath();
+      ctx.moveTo(annotation.points[0].x, annotation.points[0].y);
+      annotation.points.forEach(point => {
+        ctx.lineTo(point.x, point.y);
       });
+      ctx.strokeStyle = annotation.color;
+      ctx.lineWidth = annotation.width;
+      ctx.stroke();
+    });
+  };
+
+  // Effect for drawing current annotation
+  useEffect(() => {
+    if (!isDrawing || !currentAnnotation) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    // Clear and redraw base image with saved annotations
+    const img = new Image();
+    img.src = URL.createObjectURL(selectedFiles[currentImageIndex]);
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0);
+      drawAnnotations();
 
       // Draw current annotation
-      if (currentAnnotation?.points.length) {
+      if (currentAnnotation.points.length) {
         ctx.beginPath();
         ctx.moveTo(currentAnnotation.points[0].x, currentAnnotation.points[0].y);
         currentAnnotation.points.forEach(point => {
           ctx.lineTo(point.x, point.y);
         });
-        ctx.strokeStyle = currentAnnotation.color;
-        ctx.lineWidth = currentAnnotation.width;
+        ctx.strokeStyle = '#FF0000'; // Default red color
+        ctx.lineWidth = 2;
         ctx.stroke();
       }
     };
-  }, [currentImageIndex, annotations, currentAnnotation, selectedFiles]);
+  }, [currentAnnotation?.points]); // Only re-run when points change
 
   // Handle description changes
   const handleDescriptionChange = (description: string) => {
@@ -190,6 +239,13 @@ export default function Home() {
       newDescriptions[currentImageIndex] = description;
       return newDescriptions;
     });
+  };
+
+  // When clicking "Begin Analysis" button in annotation view
+  const startAnalysis = async () => {
+    setIsAnnotating(false);
+    setIsAnalyzing(true);
+    await runAnalysis(); // Make sure we run the analysis after state changes
   };
 
   if (isShowingReport) {
@@ -351,8 +407,8 @@ export default function Home() {
             {/* Selected image */}
             <div className="flex-1 bg-black/[.03] dark:bg-white/[.03] rounded-lg overflow-hidden">
               <img
-                src={URL.createObjectURL(selectedFiles[selectedImageIndex])}
-                alt={selectedFiles[selectedImageIndex].name}
+                src={URL.createObjectURL(imageData[selectedImageIndex].file)}
+                alt={imageData[selectedImageIndex].file.name}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -366,7 +422,7 @@ export default function Home() {
                 {analysisResults[selectedImageIndex] && (
                   <div className="space-y-4 text-sm">
                     <p><strong>Component Type:</strong> {analysisResults[selectedImageIndex].component_type}</p>
-                    <p><strong>Condition Grade:</strong> {analysisResults[selectedImageIndex].condition_grade}/5</p>
+                    <p><strong>Condition Grade:</strong> {analysisResults[selectedImageIndex].condition_grade}</p>
                     <p><strong>Condition:</strong> {analysisResults[selectedImageIndex].condition_description}</p>
                     <p><strong>Recommendations:</strong> {analysisResults[selectedImageIndex].maintenance_recommendations}</p>
                   </div>
@@ -420,12 +476,7 @@ export default function Home() {
               Next
             </button>
             <button
-              onClick={async () => {
-                setIsAnnotating(false);
-                setIsAnalyzing(true);
-                await runAnalysis();
-                //setIsAnalyzing(false);
-              }}
+              onClick={startAnalysis}
               className="rounded-full border border-transparent bg-foreground text-background px-6 py-2 text-sm hover:bg-[#383838] dark:hover:bg-[#ccc]"
             >
               Begin Analysis
@@ -474,8 +525,10 @@ export default function Home() {
                   if (e.target.files) {
                     const newFiles = Array.from(e.target.files);
                     setSelectedFiles(prev => [...prev, ...newFiles]);
-                    setAnnotations(prev => [...prev, ...new Array(newFiles.length).fill([])]);
-                    setImageDescriptions(prev => [...prev, ...new Array(newFiles.length).fill('')]);
+                    setImageData(prev => [...prev, ...newFiles.map(file => ({
+                      file,
+                      description: ''
+                    }))]);
                   }
                 }}
                 className="hidden"
