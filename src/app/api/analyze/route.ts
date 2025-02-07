@@ -24,6 +24,8 @@ export async function POST(request: Request) {
 
         You will analyze an image of an industrial mechanical component such as a furnace, an outlet, or a boiler. Your task is to determine the component type in detail and name what kind it is and it's brand if present, assess its condition, describe the condition, and suggest necessary maintenance actions. If an area in the image is circled or annotated with a red drawing, you should focus exclusively on that part of the image. When taking the photo, the inspecting engineer provided a description of the component. Use this description to help you determine the component type and condition, as well as any relevant details.
 
+        ${descriptionPrompt}
+
         Steps:
 
         Identify Component Type: Determine and specify the type of industrial mechanical component shown in the image. You should be as specific and accurate as possible. For example, use categories like 'Vented Gas Furnace' instead of 'HVAC System'. Note that the image may also be a general structure, such as 'metal wall', 'concrete slab floor', or 'exterior parking lot'.
