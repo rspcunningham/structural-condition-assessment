@@ -11,6 +11,7 @@ interface Annotation {
 
 interface ImageData {
   file: File;
+  originalFile: File;
   description: string;
 }
 
@@ -77,7 +78,8 @@ export default function Home() {
   const handleUpload = (files: File[]) => {
     setSelectedFiles(files);
     setImageData(files.map(file => ({
-      file,
+      file: file,
+      originalFile: file,
       description: ''
     })));
     setCurrentImageIndex(0);
@@ -150,12 +152,12 @@ export default function Home() {
         type: 'image/png'
       });
 
-      // Update the imageData with the annotated version
+      // Update the imageData with the annotated version but keep the original
       setImageData(prev => {
         const newData = [...prev];
         newData[currentImageIndex] = {
           ...newData[currentImageIndex],
-          file: annotatedFile // Replace the file with the annotated version
+          file: annotatedFile // Only update the annotated version
         };
         return newData;
       });
@@ -364,13 +366,13 @@ export default function Home() {
                   <div className="flex flex-col items-center">
                     <div className="w-1/2 aspect-square">
                       <img
-                        src={URL.createObjectURL(imageData[index].file)}
-                        alt={imageData[index].file.name}
+                        src={URL.createObjectURL(imageData[index].originalFile)}
+                        alt={imageData[index].originalFile.name}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     </div>
                     <p className="text-sm text-gray-500 mt-2 focus:outline-none" contentEditable suppressContentEditableWarning>
-                      {imageData[index].file.name}
+                      {imageData[index].originalFile.name}
                     </p>
                   </div>
 
@@ -572,6 +574,7 @@ export default function Home() {
                     setSelectedFiles(prev => [...prev, ...newFiles]);
                     setImageData(prev => [...prev, ...newFiles.map(file => ({
                       file,
+                      originalFile: file,
                       description: ''
                     }))]);
                   }
