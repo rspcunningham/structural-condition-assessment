@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Structural Analysis Generator",
-  description: "Structural Analysis Generator",
+  title: "Building Condition Assessment",
+  description: "Building Condition Assessment Generator",
 };
 
 export default function RootLayout({
