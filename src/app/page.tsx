@@ -392,14 +392,14 @@ export default function Home() {
                       </p>
                     </div>
                     
-                    <div>
+                    {/* <div>
                       <h4 className="text-sm font-medium text-gray-500 focus:outline-none" contentEditable suppressContentEditableWarning>
                         Recommended Actions
                       </h4>
                       <p className="text-sm mt-1 focus:outline-none" contentEditable suppressContentEditableWarning>
                         {result.maintenance_recommendations}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
 
                   {index < analysisResults.length - 1 && (
@@ -537,7 +537,7 @@ export default function Home() {
                     <p><strong>Component Type:</strong> {analysisResults[selectedImageIndex].component_type}</p>
                     <p><strong>Condition Grade:</strong> {analysisResults[selectedImageIndex].condition_grade}</p>
                     <p><strong>Condition:</strong> {analysisResults[selectedImageIndex].condition_description}</p>
-                    <p><strong>Recommendations:</strong> {analysisResults[selectedImageIndex].maintenance_recommendations}</p>
+                    {/* <p><strong>Recommendations:</strong> {analysisResults[selectedImageIndex].maintenance_recommendations}</p> */}
                   </div>
                 )}
               </div>
